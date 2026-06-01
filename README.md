@@ -171,7 +171,7 @@ docker compose --profile dev logs -f
 - [x] Docker Compose dev/test infrastructure
 - [ ] User authentication
 - [ ] Batch analysis (multiple documents)
-- [ ] PDF import support
+- [x] PDF import support
 - [ ] Export reports (PDF, HTML)
 - [ ] Model comparison dashboard
 - [ ] Webhook notifications

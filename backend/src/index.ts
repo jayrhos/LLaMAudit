@@ -1,10 +1,19 @@
 import express from 'express';
 import cors from 'cors';
+import multer from 'multer';
 import { config } from './config';
 import { initDatabase } from './config/database';
 import routes from './routes';
 
 const app = express();
+
+// Configure multer for file uploads (no size limit)
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    // No file size limit as per requirements
+  },
+});
 
 // Middleware
 app.use(cors({
@@ -12,6 +21,9 @@ app.use(cors({
   credentials: true,
 }));
 app.use(express.json({ limit: '10mb' }));
+
+// Apply multer middleware to PDF extraction endpoint
+app.use('/api/pdf', upload.single('file'));
 
 // Routes
 app.use('/api', routes);

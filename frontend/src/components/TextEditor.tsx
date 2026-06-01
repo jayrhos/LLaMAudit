@@ -31,6 +31,23 @@ export default function TextEditor({ value, onChange }: TextEditorProps) {
         const arrayBuffer = await file.arrayBuffer();
         const text = await extractOdtText(arrayBuffer);
         onChange(text);
+      } else if (ext === 'pdf') {
+        // PDF files - extract text via backend API
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        const response = await fetch('/api/pdf/extract', {
+          method: 'POST',
+          body: formData,
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || `PDF extraction failed (${response.status})`);
+        }
+        
+        const result = await response.json();
+        onChange(result.text);
       } else {
         // Fallback: try reading as text
         const text = await file.text();
@@ -38,7 +55,7 @@ export default function TextEditor({ value, onChange }: TextEditorProps) {
       }
     } catch (err) {
       console.error('Failed to import file:', err);
-      alert('Failed to import file. Please try a .txt, .md, or .docx file.');
+      alert('Failed to import file. Please try a .txt, .md, .docx, .odt, or .pdf file.');
     }
 
     // Reset the input
@@ -53,7 +70,7 @@ export default function TextEditor({ value, onChange }: TextEditorProps) {
           <input
             ref={fileInputRef}
             type="file"
-            accept=".txt,.md,.docx,.odt,.doc"
+            accept=".txt,.md,.docx,.odt,.doc,.pdf"
             onChange={handleFileImport}
             className="hidden"
             id="file-import"
@@ -80,7 +97,7 @@ export default function TextEditor({ value, onChange }: TextEditorProps) {
         onChange={(e) => onChange(e.target.value)}
         placeholder="Paste your text here, or import a document using the button above...
 
-Supports: Plain text (.txt), Markdown (.md), Word documents (.docx), and OpenDocument (.odt)"
+Supports: Plain text (.txt), Markdown (.md), Word documents (.docx), OpenDocument (.odt), and PDF (.pdf)"
         rows={16}
         className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm leading-relaxed resize-y font-mono"
       />

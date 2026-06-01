@@ -21,10 +21,10 @@ services:
 
   # Development services with hot reload
   backend-dev:
-    image: node:20-alpine
+    image: node:20-bookworm-slim
     container_name: llamaudit-backend-dev
     working_dir: /app
-    command: sh -c "npm install && npm run dev"
+    command: sh -c "apt-get update && apt-get install -y --no-install-recommends chromium fonts-liberation && npm install && npm run dev"
     ports:
       - "52001:52001"
     environment:
