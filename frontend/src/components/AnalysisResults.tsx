@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { AnalysisResponse, SectionAnalysis } from '@/types';
 
 interface AnalysisResultsProps {
@@ -92,8 +93,133 @@ function SectionCard({ section, index }: { section: SectionAnalysis; index: numb
 }
 
 export default function AnalysisResults({ analysis, inputText }: AnalysisResultsProps) {
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
+  const [isExportingHtml, setIsExportingHtml] = useState(false);
+
+  const handleViewPdf = async () => {
+    try {
+      setIsExportingPdf(true);
+      // Open PDF in new tab for viewing
+      const url = `/api/export/analysis/${analysis.id}/pdf?inline=true`;
+      window.open(url, '_blank');
+    } catch (err: any) {
+      console.error('PDF view failed:', err);
+      alert('Failed to view PDF: ' + (err.message || 'Unknown error'));
+    } finally {
+      setIsExportingPdf(false);
+    }
+  };
+
+  const handleDownloadPdf = async () => {
+    try {
+      setIsExportingPdf(true);
+      const response = await fetch(`/api/export/analysis/${analysis.id}/pdf`);
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        throw new Error(error.error || 'Failed to export PDF');
+      }
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `llamaudit-report-${analysis.id.slice(0, 8)}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err: any) {
+      console.error('PDF download failed:', err);
+      alert('Failed to download PDF: ' + (err.message || 'Unknown error'));
+    } finally {
+      setIsExportingPdf(false);
+    }
+  };
+
+  const handleViewHtml = async () => {
+    try {
+      setIsExportingHtml(true);
+      // Open HTML in new tab for viewing
+      const url = `/api/export/analysis/${analysis.id}/html?inline=true`;
+      window.open(url, '_blank');
+    } catch (err: any) {
+      console.error('HTML view failed:', err);
+      alert('Failed to view HTML: ' + (err.message || 'Unknown error'));
+    } finally {
+      setIsExportingHtml(false);
+    }
+  };
+
+  const handleDownloadHtml = async () => {
+    try {
+      setIsExportingHtml(true);
+      const response = await fetch(`/api/export/analysis/${analysis.id}/html`);
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        throw new Error(error.error || 'Failed to export HTML');
+      }
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `llamaudit-report-${analysis.id.slice(0, 8)}.html`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err: any) {
+      console.error('HTML download failed:', err);
+      alert('Failed to download HTML: ' + (err.message || 'Unknown error'));
+    } finally {
+      setIsExportingHtml(false);
+    }
+  };
+
   return (
     <div className="space-y-6 animate-slide-up">
+      {/* Header with export buttons */}
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-slate-800">Analysis Results</h2>
+        <div className="flex gap-2">
+          <div className="flex gap-1">
+            <button
+              onClick={handleViewHtml}
+              disabled={isExportingHtml}
+              className="px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-l-lg transition-colors flex items-center gap-1 disabled:opacity-50"
+              title="View HTML in new tab"
+            >
+              👁️ View
+            </button>
+            <button
+              onClick={handleDownloadHtml}
+              disabled={isExportingHtml}
+              className="px-3 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-r-lg transition-colors flex items-center gap-1 disabled:opacity-50"
+              title="Download HTML file"
+            >
+              🌐 HTML
+            </button>
+          </div>
+          <div className="flex gap-1">
+            <button
+              onClick={handleViewPdf}
+              disabled={isExportingPdf}
+              className="px-3 py-2 text-sm font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-l-lg transition-colors flex items-center gap-1 disabled:opacity-50"
+              title="View PDF in new tab"
+            >
+              👁️ View
+            </button>
+            <button
+              onClick={handleDownloadPdf}
+              disabled={isExportingPdf}
+              className="px-3 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-r-lg transition-colors flex items-center gap-1 disabled:opacity-50"
+              title="Download PDF file"
+            >
+              📄 PDF
+            </button>
+          </div>
+        </div>
+      </div>
       {/* Overall Score */}
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
         <div className="flex items-center gap-8">
